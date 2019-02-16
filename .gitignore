@@ -111,4 +111,4 @@ app/server/api-docs/
 app/server/lib
 app/server/dist
 
-app/server/sqlite.sqlite3
+app/server/sqlite.db

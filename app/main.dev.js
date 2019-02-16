@@ -61,7 +61,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('ready', async () => {
-  require('./server/lib/migrate.js');
   require('./server/index.js');
   if (
     process.env.NODE_ENV === 'development' ||

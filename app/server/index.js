@@ -1,22 +1,24 @@
-const application = require('./lib');
+/* Load modules */
+const express = require("express");
+const app = express();
+const bodyParser = require("body-parser");
 
-module.exports = application;
+/* Database configuration */
+const database = require('./app/config/dbconfig');
 
-// console.log("require.main", require.main);
-// if (require.main === module) {
-  // Run the application
-  const config = {
-    rest: {
-      port: +process.env.PORT || 32592,
-      host: process.env.HOST || '0.0.0.0',
-      openApiSpec: {
-        // useful when used with OASGraph to locate your application
-        setServersFromRequest: true,
-      },
-    },
-  };
-  application.main(config).catch(err => {
-    console.error('Cannot start the application.', err);
-    process.exit(1);
-  });
-// }
+/* Init database */
+database.init();
+
+/* Init server listening */
+const port = process.argv[2] || 32592;
+app.listen(port, function () {
+    console.log("Server listening on port : " + port);
+});
+
+/* Express configuration */
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+/* Router configuration */
+const REST_API_ROOT = '/api';
+app.use(REST_API_ROOT, require('./app/routes/router'));
