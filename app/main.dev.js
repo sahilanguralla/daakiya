@@ -10,8 +10,7 @@
  *
  * @flow
  */
-const {app} = require('electron');
-const {BrowserWindow} = require('electron');
+const {app, BrowserWindow} = require('electron');
 // const {autoUpdater} = require('electron-updater');
 // const log = require('electron-log').default;
 const MenuBuilder = require('./menu');
@@ -25,6 +24,7 @@ const MenuBuilder = require('./menu');
 // }
 
 let mainWindow = null;
+let loopbackApp;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -61,8 +61,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('ready', async () => {
-  require('./server/lib/migrate.js');
-  require('./server/index.js');
   if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
@@ -84,6 +82,7 @@ app.on('ready', async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
+    loopbackApp = require('./server/server.js');
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
@@ -92,7 +91,26 @@ app.on('ready', async () => {
     }
   });
 
+  // Emitted when the window is closed.
   mainWindow.on('closed', () => {
+    // Write the SQLite database that is in memory to file. Otherwise it will not persist.
+    const db = loopbackApp.dataSources.sqlite.connector;
+    const fs = require('fs');
+    const data = db.client.export();
+    const buffer = Buffer.from(data);
+    const dbPath = loopbackApp.dataSources.sqlite.connector.file_name;
+
+    fs.writeFile(dbPath, buffer, err => {
+      if (err) {
+        console.error('error writing database file:', err);
+      } else {
+        console.log('Wrote DB to file at: ', dbPath);
+      }
+    });
+
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
     mainWindow = null;
   });
 

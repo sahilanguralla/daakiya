@@ -1,6 +1,0 @@
-{
-  "name": "sqlite",
-  "connector": "loopback-connector-sqlite3",
-  "file": "sqlite.sqlite3",
-  "debug": false
-}
