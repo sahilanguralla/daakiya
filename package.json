@@ -7,7 +7,7 @@
     "build": "rm -rf dist && mkdir dist && concurrently \"yarn build-main\" \"yarn build-renderer\" && yarn build-server",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
     "build-e2e": "cross-env E2E_BUILD=true yarn build",
-    "build-main": "cross-env cp app/main.dev.js dist/main.prod.js && cp app/menu.js dist/menu.js",
+    "build-main": "cross-env cp app/main.dev.js dist/main.prod.js && cp app/menu.js dist/menu.js && cp -R resources dist/resources",
     "build-renderer": "cross-env NODE_ENV=production webpack --config ./configs/webpack.config.renderer.prod.babel.js --colors && cp app/app.html dist/app.html",
     "build-server": "cp -R app/server dist",
     "dev": "cross-env START_HOT=1 node -r @babel/register ./internals/scripts/CheckPortInUse.js && cross-env START_HOT=1 yarn start-renderer-dev",
@@ -17,7 +17,7 @@
     "lint-fix": "yarn --silent lint --fix; exit 0",
     "lint-styles": "stylelint --ignore-path .eslintignore '**/*.*(css|scss)' --syntax scss",
     "lint-styles-fix": "yarn --silent lint-styles --fix; exit 0",
-    "package": "rm -rf release && yarn build && electron-builder build --publish never",
+    "package": "rm -rf release && yarn build && electron-builder build --publish never --config electron-builder.json",
     "package-all": "yarn build && electron-builder build -mwl",
     "package-ci": "yarn postinstall && yarn build && electron-builder --publish always",
     "package-linux": "yarn build && electron-builder build --linux",
@@ -58,53 +58,6 @@
     ]
   },
   "main": "./dist/main.prod.js",
-  "build": {
-    "productName": "daakiya",
-    "appId": "app.daakiya.Daakiya",
-    "files": [
-      "dist/",
-      "package.json"
-    ],
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "msi"
-      ]
-    },
-    "linux": {
-      "target": [
-        "deb",
-        "rpm",
-        "snap",
-        "AppImage"
-      ],
-      "category": "Development"
-    },
-    "directories": {
-      "buildResources": "resources",
-      "output": "release"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "sahilanguralla",
-      "repo": "daakiya",
-      "private": false
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sahilanguralla/daakiya.git"

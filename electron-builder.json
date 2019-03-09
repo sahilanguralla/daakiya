@@ -1,0 +1,36 @@
+{
+  "productName": "daakiya",
+  "appId": "app.daakiya.Daakiya",
+  "dmg": {
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "win": {
+    "target": ["nsis", "msi"]
+  },
+  "linux": {
+    "target": ["deb", "rpm", "snap", "AppImage"],
+    "category": "Development"
+  },
+  "directories": {
+    "buildResources": "resources",
+    "output": "release"
+  },
+  "files": ["dist/", "resources/**/*", "package.json"],
+  "publish": {
+    "provider": "github",
+    "owner": "sahilanguralla",
+    "repo": "daakiya",
+    "private": false
+  }
+}

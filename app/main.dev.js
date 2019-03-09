@@ -10,7 +10,8 @@
  *
  * @flow
  */
-const {app, BrowserWindow} = require('electron');
+const path = require('path');
+const {app, BrowserWindow, Tray} = require('electron');
 // const {autoUpdater} = require('electron-updater');
 // const log = require('electron-log').default;
 const MenuBuilder = require('./menu');
@@ -23,8 +24,12 @@ const MenuBuilder = require('./menu');
 //   }
 // }
 
+const assetsDirectory = path.join(__dirname, '..', `resources/`);
+let tray;
 let mainWindow = null;
 let loopbackApp;
+
+app.dock.hide();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -67,11 +72,21 @@ app.on('ready', async () => {
   ) {
     await installExtensions();
   }
+  createTray();
 
   mainWindow = new BrowserWindow({
+    width: 300,
+    height: 450,
     show: false,
-    width: 1024,
-    height: 728,
+    frame: false,
+    fullscreenable: false,
+    resizable: false,
+    transparent: true,
+    webPreferences: {
+      // Prevents renderer process code from not running when window is
+      // hidden
+      backgroundThrottling: false,
+    },
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
@@ -83,12 +98,12 @@ app.on('ready', async () => {
       throw new Error('"mainWindow" is not defined');
     }
     loopbackApp = require('./server/server.js');
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      mainWindow.show();
-      mainWindow.focus();
-    }
+    // if (process.env.START_MINIMIZED) {
+    //   mainWindow.minimize();
+    // } else {
+    //   mainWindow.show();
+    //   mainWindow.focus();
+    // }
   });
 
   // Emitted when the window is closed.
@@ -114,6 +129,10 @@ app.on('ready', async () => {
     mainWindow = null;
   });
 
+  mainWindow.on('blur', () => {
+    mainWindow.hide();
+  });
+
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
@@ -121,3 +140,47 @@ app.on('ready', async () => {
   // eslint-disable-next-line
   // new AppUpdater();
 });
+
+const createTray = () => {
+  tray = new Tray(path.join(assetsDirectory, 'icons/24x24.png'));
+  tray.on('right-click', toggleWindow);
+  tray.on('double-click', toggleWindow);
+  tray.on('click', event => {
+    toggleWindow();
+
+    // Show devtools when command clicked
+    if (mainWindow.isVisible() && process.defaultApp && event.metaKey) {
+      mainWindow.openDevTools({mode: 'detach'});
+    }
+  });
+};
+
+const toggleWindow = () => {
+  if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    showWindow();
+  }
+};
+
+const showWindow = () => {
+  const position = getWindowPosition();
+  mainWindow.setPosition(position.x, position.y, false);
+  mainWindow.show();
+  mainWindow.focus();
+};
+
+const getWindowPosition = () => {
+  const windowBounds = mainWindow.getBounds();
+  const trayBounds = tray.getBounds();
+
+  // Center window horizontally below the tray icon
+  const x = Math.round(
+    trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2,
+  );
+
+  // Position window 4 pixels vertically below the tray icon
+  const y = Math.round(trayBounds.y + trayBounds.height + 4);
+
+  return {x, y};
+};
