@@ -7,14 +7,13 @@
  *
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./dist/main.prod.js` using webpack. This gives us some performance wins.
- *
- * @flow
  */
-const path = require('path');
-const {app, BrowserWindow, Tray} = require('electron');
+import path from 'path';
+import {app, BrowserWindow, Tray} from 'electron';
+import MenuBuilder from './menu';
+
 // const {autoUpdater} = require('electron-updater');
 // const log = require('electron-log').default;
-const MenuBuilder = require('./menu');
 
 // class AppUpdater {
 //   constructor() {
@@ -25,11 +24,9 @@ const MenuBuilder = require('./menu');
 // }
 
 const assetsDirectory = path.join(__dirname, '..', `resources/`);
-let tray;
-let mainWindow = null;
+let tray: Tray;
+let mainWindow: BrowserWindow | null;
 let loopbackApp;
-
-app.dock.hide();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -82,6 +79,7 @@ app.on('ready', async () => {
     fullscreenable: false,
     resizable: false,
     transparent: true,
+    skipTaskbar: true,
     webPreferences: {
       // Prevents renderer process code from not running when window is
       // hidden
@@ -115,7 +113,7 @@ app.on('ready', async () => {
     const buffer = Buffer.from(data);
     const dbPath = loopbackApp.dataSources.sqlite.connector.file_name;
 
-    fs.writeFile(dbPath, buffer, err => {
+    fs.writeFile((dbPath: string, buffer:Buffer, err: Error) => {
       if (err) {
         console.error('error writing database file:', err);
       } else {
@@ -130,7 +128,7 @@ app.on('ready', async () => {
   });
 
   mainWindow.on('blur', () => {
-    mainWindow.hide();
+    mainWindow!.hide();
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
@@ -149,15 +147,15 @@ const createTray = () => {
     toggleWindow();
 
     // Show devtools when command clicked
-    if (mainWindow.isVisible() && process.defaultApp && event.metaKey) {
-      mainWindow.openDevTools({mode: 'detach'});
+  if (mainWindow!.isVisible() && process.defaultApp && event.metaKey) {
+      mainWindow!.webContents.openDevTools({mode: 'detach'});
     }
   });
 };
 
 const toggleWindow = () => {
-  if (mainWindow.isVisible()) {
-    mainWindow.hide();
+  if (mainWindow!.isVisible()) {
+    mainWindow!.hide();
   } else {
     showWindow();
   }
@@ -165,13 +163,13 @@ const toggleWindow = () => {
 
 const showWindow = () => {
   const position = getWindowPosition();
-  mainWindow.setPosition(position.x, position.y, false);
-  mainWindow.show();
-  mainWindow.focus();
+  mainWindow!.setPosition(position.x, position.y, false);
+  mainWindow!.show();
+  mainWindow!.focus();
 };
 
 const getWindowPosition = () => {
-  const windowBounds = mainWindow.getBounds();
+  const windowBounds = mainWindow!.getBounds();
   const trayBounds = tray.getBounds();
 
   // Center window horizontally below the tray icon

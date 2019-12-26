@@ -1,13 +1,13 @@
-// @flow
 import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
-import type { Store } from '../reducers/types';
+import { Store } from '../reducers/types';
 import Routes from '../Routes';
+import { History } from 'history';
 
-type Props = {
+interface Props {
   store: Store,
-  history: {}
+  history: History
 };
 
 export default class Root extends Component<Props> {

@@ -1,9 +1,11 @@
+import {BrowserWindow} from 'electron';
 const {app} = require('electron');
 const {Menu} = require('electron');
 const {shell} = require('electron');
 
 class MenuBuilder {
-  constructor(mainWindow) {
+  mainWindow: BrowserWindow;
+  constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
   }
 
@@ -27,7 +29,7 @@ class MenuBuilder {
   }
 
   setupDevelopmentEnvironment() {
-    this.mainWindow.openDevTools();
+    this.mainWindow.webContents.openDevTools();
     this.mainWindow.webContents.on('context-menu', (e, props) => {
       const {x, y} = props;
 
@@ -35,7 +37,7 @@ class MenuBuilder {
         {
           label: 'Inspect element',
           click: () => {
-            this.mainWindow.inspectElement(x, y);
+            this.mainWindow.webContents.inspectElement(x, y);
           },
         },
       ]).popup(this.mainWindow);
@@ -111,7 +113,7 @@ class MenuBuilder {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
           click: () => {
-            this.mainWindow.toggleDevTools();
+            this.mainWindow.webContents.toggleDevTools();
           },
         },
       ],
@@ -222,7 +224,7 @@ class MenuBuilder {
                   label: 'Toggle &Developer Tools',
                   accelerator: 'Alt+Ctrl+I',
                   click: () => {
-                    this.mainWindow.toggleDevTools();
+                    this.mainWindow.webContents.toggleDevTools();
                   },
                 },
               ]
@@ -275,4 +277,4 @@ class MenuBuilder {
   }
 }
 
-module.exports = MenuBuilder;
+export default MenuBuilder;
